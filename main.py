@@ -19,12 +19,7 @@ clock = pygame.time.Clock()
 player = pygame.Rect((10, 250, 10, 80))
 enemy = pygame.Rect((780, 250, 10, 80))
 
-ball_surface = pygame.Surface((15, 15))
-ball_rect = ball_surface.get_rect()
-ball_rect.topleft = ((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)) # Spawn ball in center of screen
-ball_velocity = pygame.Vector2(choice([-1, 1]) * BALL_SPEED, choice([-1, 1]) * BALL_SPEED)
-ball_colors = ["white", "blue", "red"]
-ball_surface.fill(ball_colors[0])
+
 
 def draw_net():
     for y in range(0, SCREEN_HEIGHT, 10):
@@ -61,7 +56,7 @@ async def game_lost():
         screen.fill("black")
         display_message("segoeui", "You lost!", 42, bold = True, y_offset = -20)
         display_message("segoeui", "Press any key to play again", 42, bold = True, y_offset = 150)
-        display_message("segoeui", "Press 'esc' to exit", 21, bold = True, y_offset = 225)
+        display_message("segoeui", "Press 'Esc' to exit", 21, bold = True, y_offset = 225)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -79,7 +74,7 @@ async def game_won():
         screen.fill("black")
         display_message("segoeui", "You won!", 42, bold = True, y_offset = -20)
         display_message("segoeui", "Press any key to play again", 42, bold = True, y_offset = 150)
-        display_message("segoeui", "Press 'esc' to exit", 21, bold = True, y_offset = 225)
+        display_message("segoeui", "Press 'E0-sc' to exit", 21, bold = True, y_offset = 225)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -95,10 +90,19 @@ async def game_won():
 async def main():
     while True:
         await welcome_screen()
-        sleep(0.25)
 
         player_score = 0
         enemy_score = 0
+
+        reset_ball = False
+        reset_timer = pygame.time.get_ticks()
+
+        ball_surface = pygame.Surface((15, 15))
+        ball_rect = ball_surface.get_rect()
+        ball_rect.topleft = ((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)) # Spawn ball in center of screen
+        ball_velocity = pygame.Vector2(choice([-1, 1]) * BALL_SPEED, choice([-1, 1]) * BALL_SPEED)
+        ball_colors = ["white", "blue", "red"]
+        ball_surface.fill(ball_colors[0])
 
         running = True
         while running:
@@ -136,7 +140,7 @@ async def main():
             elif enemy.colliderect(ball_rect):
                 ball_surface.fill(ball_colors[2])
                 ball_rect.right = enemy.left
-                ball_velocity.x *= -1 # 
+                ball_velocity.x *= -1
 
                 offset = (ball_rect.centery - enemy.centery) / (enemy.height / 2)
                 ball_velocity.y = BALL_SPEED * offset
@@ -151,14 +155,25 @@ async def main():
                 enemy_score += 1
             
             # Reset ball when it hits a wall
-            if ball_rect.right == SCREEN_WIDTH or ball_rect.left == 0:
-                player.x = 10
-                player.y = 250
-                enemy.x = 780
-                enemy.y = 250
+            if ball_rect.right == SCREEN_WIDTH or ball_rect.left == 0 and not reset_ball:
+                player.x, player.y = 10, 250
+                enemy.x, enemy.y = 780, 250
                 ball_surface.fill(ball_colors[0])
                 ball_rect.topleft = ((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+                ball_velocity.xy = (0,0)
+
+                starting_velocity = pygame.Vector2(choice([-1, 1]) * BALL_SPEED, choice([-1, 1]) * BALL_SPEED)
+                
+                reset_timer = pygame.time.get_ticks()
+                reset_ball = True
             
+            # Wait 1 second before 'serving' ball
+            if reset_ball:
+                if pygame.time.get_ticks() - reset_timer >= 1000:
+                    ball_velocity.xy = starting_velocity
+                    reset_ball = False
+            
+            # Win/Lose condition
             if enemy_score >= 10:
                 await game_lost()
             elif player_score >= 10:
