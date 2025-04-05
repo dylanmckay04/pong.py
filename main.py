@@ -61,6 +61,7 @@ async def game_lost():
         screen.fill("black")
         display_message("segoeui", "You lost!", 42, bold = True, y_offset = -20)
         display_message("segoeui", "Press any key to play again", 42, bold = True, y_offset = 150)
+        display_message("segoeui", "Press 'esc' to exit", 21, bold = True, y_offset = 225)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -68,14 +69,17 @@ async def game_lost():
                 pygame.quit()
                 exit()
             elif event.type == pygame.KEYDOWN:
-                pygame.quit()
-                exit()
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    exit()
+                await main()
 
 async def game_won():
     while True:
         screen.fill("black")
         display_message("segoeui", "You won!", 42, bold = True, y_offset = -20)
         display_message("segoeui", "Press any key to play again", 42, bold = True, y_offset = 150)
+        display_message("segoeui", "Press 'esc' to exit", 21, bold = True, y_offset = 225)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -140,18 +144,25 @@ async def main():
                 if abs(ball_velocity.y) < BALL_SPEED:
                     ball_velocity.y = BALL_SPEED * (1 if ball_velocity.y > 0 else -1)
             
+            # Increment score when ball hits a wall
             if ball_rect.right == SCREEN_WIDTH:
                 player_score += 1
             elif ball_rect.left == 0:
                 enemy_score += 1
             
+            # Reset ball when it hits a wall
+            if ball_rect.right == SCREEN_WIDTH or ball_rect.left == 0:
+                player.x = 10
+                player.y = 250
+                enemy.x = 780
+                enemy.y = 250
+                ball_surface.fill(ball_colors[0])
+                ball_rect.topleft = ((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+            
             if enemy_score >= 10:
                 await game_lost()
             elif player_score >= 10:
                 await game_won()
-
-            if not running:
-                break
 
             enemy.centery = ball_rect.y # Enemy 'follows' the ball
 
