@@ -119,7 +119,6 @@ async def main():
                 ball_velocity.y *= -1  # Reverse vertical direction
             
             if player.colliderect(ball_rect):
-                player_score += 1
                 ball_surface.fill(ball_colors[1])
                 ball_rect.left = player.right # Prevent ball sticking
                 ball_velocity.x *= -1 # Reverse horizontal direction
@@ -131,7 +130,6 @@ async def main():
                     ball_velocity.y = BALL_SPEED * (1 if ball_velocity.y > 0 else -1) # Ensure ball stays at least at starting speed
 
             elif enemy.colliderect(ball_rect):
-                enemy_score += 1
                 ball_surface.fill(ball_colors[2])
                 ball_rect.right = enemy.left
                 ball_velocity.x *= -1 # 
@@ -141,6 +139,11 @@ async def main():
 
                 if abs(ball_velocity.y) < BALL_SPEED:
                     ball_velocity.y = BALL_SPEED * (1 if ball_velocity.y > 0 else -1)
+            
+            if ball_rect.right == SCREEN_WIDTH:
+                player_score += 1
+            elif ball_rect.left == 0:
+                enemy_score += 1
             
             if enemy_score >= 10:
                 await game_lost()
