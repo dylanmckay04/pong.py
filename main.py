@@ -1,5 +1,5 @@
 import pygame
-import random
+from random import choice
 
 pygame.init()
 
@@ -16,34 +16,53 @@ clock = pygame.time.Clock()
 player = pygame.Rect((10, 250, 10, 80))
 enemy = pygame.Rect((780, 250, 10, 80))
 
-ball_surface = pygame.Surface((10, 10))
+ball_surface = pygame.Surface((15, 15))
 ball_rect = ball_surface.get_rect()
 ball_rect.topleft = ((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)) # Spawn ball in center of screen
-ball_velocity = pygame.Vector2(random.choice([-1, 1]) * BALL_SPEED, random.choice([-1, 1]) * BALL_SPEED)
+ball_velocity = pygame.Vector2(choice([-1, 1]) * BALL_SPEED, choice([-1, 1]) * BALL_SPEED)
 ball_colors = ["white", "blue", "red"]
 ball_surface.fill(ball_colors[0])
-
-font = pygame.font.SysFont("segoeui", 38, bold=False)
-title_text = font.render("pong.py", True, "white")
 
 def draw_net():
     for y in range(0, SCREEN_HEIGHT, 10):
         rect = pygame.Rect(SCREEN_WIDTH // 2, y, 1, 5)
         pygame.draw.rect(screen, (100, 100, 100), rect)
 
+def display_message(font, text, size, color, y_offset = 0, centered = True, position = (0,0)):
+    font = pygame.font.SysFont(font, size)
+    message = font.render(text, True, color)
+    if centered:
+        message_rect = message.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + y_offset))
+    else:
+        message_rect = message.get_rect(topleft=position)
+    screen.blit(message, message_rect)
+
+def welcome_screen():
+    pass
+
+
+def game_over():
+    pass
+
 def main():
+    player_score = 0
+    enemy_score = 0
+
     running = True
     while running:
 
         screen.fill("black") # Clear screen each frame
-
-        screen.blit(title_text, (SCREEN_WIDTH // 2.525, 0))
 
         draw_net() # Draw "net" of repeating lines to divide player & enemy sides
 
         pygame.draw.rect(screen, "white", player)
         pygame.draw.rect(screen, "white", enemy)
         screen.blit(ball_surface, ball_rect) # Use surface & blit for ball to allow color changing
+
+        # Display Title and Score text
+        display_message("segoeui", f"pong.py", 38, "white", -275, True)
+        display_message("segoeui", f"Player Score : {player_score}", 26, "white", centered=False, position=(SCREEN_WIDTH // 10, 5))
+        display_message("segoeui", f"Enemy Score : {enemy_score}", 26, "white", centered=False, position=(SCREEN_WIDTH - 250, 5))
 
         ball_rect.x += ball_velocity.x
         ball_rect.y += ball_velocity.y
@@ -52,6 +71,7 @@ def main():
             ball_velocity.y *= -1  # Reverse vertical direction
         
         if player.colliderect(ball_rect):
+            player_score += 1
             ball_surface.fill(ball_colors[1])
             ball_rect.left = player.right # Prevent ball sticking
             ball_velocity.x *= -1 # Reverse horizontal direction
@@ -63,6 +83,7 @@ def main():
                 ball_velocity.y = BALL_SPEED * (1 if ball_velocity.y > 0 else -1) # Ensure ball stays at least at starting speed
 
         elif enemy.colliderect(ball_rect):
+            enemy_score += 1
             ball_surface.fill(ball_colors[2])
             ball_rect.right = enemy.left
             ball_velocity.x *= -1 # 
