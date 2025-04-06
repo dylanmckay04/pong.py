@@ -4,6 +4,8 @@ from random import choice
 from sys import exit
 
 pygame.init()
+pygame.mixer.pre_init(44100, 16, 2, 4096)
+pygame.mixer.init()
 
 # Constants
 SCREEN_WIDTH = 800
@@ -14,7 +16,7 @@ BALL_SPEED = 8
 PLAYER_STARTING_COORDS = (10, 250)
 ENEMY_STARTING_COORDS = (780, 250)
 
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE | pygame.SCALED)
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN | pygame.SCALED)
 title = pygame.display.set_caption("pong.py")
 clock = pygame.time.Clock()
 
@@ -52,24 +54,23 @@ async def welcome_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
+                exit()
             elif event.type == pygame.KEYDOWN:
                 return
+        await asyncio.sleep(0)
 
 
 async def game_lost():
-    pygame.mixer.pre_init(44100, 16, 2, 4096)
-    pygame.mixer.init()
     loss_sound = pygame.mixer.Sound("audio/loss.ogg")
     loss_sound.set_volume(0.1)
     loss_sound.play()
     
+    screen.fill("black")
+    display_message("segoeui", "you lost!", 42, bold = True, y_offset = -20)
+    display_message("segoeui", "press any key to play again", 32, bold = False, y_offset = 100)
+    display_message("segoeui", "press 'esc' to exit", 21, bold = False, y_offset = 220)
+    pygame.display.update()
     while True:
-        screen.fill("black")
-        display_message("segoeui", "you lost!", 42, bold = True, y_offset = -20)
-        display_message("segoeui", "press any key to play again", 32, bold = False, y_offset = 100)
-        display_message("segoeui", "press 'esc' to exit", 21, bold = False, y_offset = 220)
-        pygame.display.update()
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -79,21 +80,19 @@ async def game_lost():
                     pygame.quit()
                     exit()
                 await main()
+        await asyncio.sleep(0)
 
 async def game_won():
-    pygame.mixer.pre_init(44100, 16, 2, 4096)
-    pygame.mixer.init()
     win_sound = pygame.mixer.Sound("audio/victory.ogg")
     win_sound.set_volume(0.1)
     win_sound.play()
 
+    screen.fill("black")
+    display_message("segoeui", "you won!", 42, bold = True, y_offset = -20)
+    display_message("segoeui", "press any key to play again", 32, bold = False, y_offset = 100)
+    display_message("segoeui", "press 'Esc' to exit", 21, bold = False, y_offset = 220)
+    pygame.display.update()
     while True:
-        screen.fill("black")
-        display_message("segoeui", "you won!", 42, bold = True, y_offset = -20)
-        display_message("segoeui", "press any key to play again", 32, bold = False, y_offset = 100)
-        display_message("segoeui", "press 'Esc' to exit", 21, bold = False, y_offset = 220)
-        pygame.display.update()
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -103,6 +102,7 @@ async def game_won():
                     pygame.quit()
                     exit()
                 await main()
+        await asyncio.sleep(0)
 
 def reset_ball_state(ball_rect, ball_surface, ball_velocity, ball_colors, player, enemy):
     player.x, player.y = PLAYER_STARTING_COORDS
@@ -120,9 +120,6 @@ async def main():
         if first_time: # Only show welcome screen on first time running main()
             await welcome_screen()
             first_time = False
-
-        pygame.mixer.pre_init(44100, 16, 2, 4096)
-        pygame.mixer.init()
 
         bounce_sound = pygame.mixer.Sound("audio/ball_bounce.ogg")
         bounce_sound.set_volume(0.1)
@@ -262,6 +259,7 @@ async def main():
                 display_message("segoeui", "PAUSED", 42, bold=True)
             pygame.display.update()
             clock.tick(60)
+            await asyncio.sleep(0)
         if not running:
             break
 
