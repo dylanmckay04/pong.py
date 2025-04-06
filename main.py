@@ -41,7 +41,10 @@ async def welcome_screen():
     while True:
         screen.fill("black")
         display_message("segoeui", "pong.py", 64, bold = True, y_offset = -20)
-        display_message("segoeui", "Press any key to play", 42, bold = False, y_offset = 150)
+        display_message("segoeui", "press any key to play", 42, bold = False, y_offset = 100)
+        display_message("segoeui", "'w' or '↑': move up", 20, bold=False, y_offset=220)
+        display_message("segoeui", "'s' or '↓': move down", 20, bold=False, y_offset=245)
+        display_message("segoeui", "'esc' or 'p' to pause", 20, bold=False, y_offset=270)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -62,9 +65,9 @@ async def game_lost():
     
     while True:
         screen.fill("black")
-        display_message("segoeui", "You lost!", 42, bold = True, y_offset = -20)
-        display_message("segoeui", "Press any key to play again", 32, bold = False, y_offset = 150)
-        display_message("segoeui", "Press 'Esc' to exit", 21, bold = False, y_offset = 225)
+        display_message("segoeui", "you lost!", 42, bold = True, y_offset = -20)
+        display_message("segoeui", "press any key to play again", 32, bold = False, y_offset = 150)
+        display_message("segoeui", "press 'esc' to exit", 21, bold = False, y_offset = 225)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -86,9 +89,9 @@ async def game_won():
 
     while True:
         screen.fill("black")
-        display_message("segoeui", "You won!", 42, bold = True, y_offset = -20)
-        display_message("segoeui", "Press any key to play again", 32, bold = False, y_offset = 150)
-        display_message("segoeui", "Press 'Esc' to exit", 21, bold = False, y_offset = 225)
+        display_message("segoeui", "you won!", 42, bold = True, y_offset = -20)
+        display_message("segoeui", "press any key to play again", 32, bold = False, y_offset = 150)
+        display_message("segoeui", "press 'Esc' to exit", 21, bold = False, y_offset = 225)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -139,8 +142,8 @@ async def main():
         ball_surface.fill(ball_colors[0])
 
         running = True
+        paused = False
         while running:
-
             screen.fill("black") # Clear screen each frame
 
             draw_net() # Draw "net" of repeating lines to divide player & enemy sides
@@ -151,101 +154,104 @@ async def main():
 
             # Display Title and Score text
             display_message("segoeui", "pong.py", 38, y_offset=-275, centered=True)
-            display_message("segoeui", f"Player Score : {player_score}", 26, centered=False, position=(SCREEN_WIDTH // 10, 5))
-            display_message("segoeui", f"Enemy Score : {enemy_score}", 26, centered=False, position=(SCREEN_WIDTH - 250, 5))
-
-            ball_rect.x += ball_velocity.x
-            ball_rect.y += ball_velocity.y
-
-            if ball_rect.top <= 0 or ball_rect.bottom >= SCREEN_HEIGHT:
-                bounce_sound.play()
-                ball_velocity.y *= -1  # Reverse vertical direction
-            
-            if player.colliderect(ball_rect):
-                bounce_sound.play()
-                ball_surface.fill(ball_colors[1])
-                ball_rect.left = player.right # Prevent ball sticking
-                ball_velocity.x *= -1 # Reverse horizontal direction
-
-                offset = (ball_rect.centery - player.centery) / (player.height / 2)
-                ball_velocity.y = BALL_SPEED * offset
-
-                if abs(ball_velocity.y) < BALL_SPEED:
-                    ball_velocity.y = BALL_SPEED * (1 if ball_velocity.y > 0 else -1) # Ensure ball stays at least at starting speed
-
-            elif enemy.colliderect(ball_rect):
-                bounce_sound.play()
-                ball_surface.fill(ball_colors[2])
-                ball_rect.right = enemy.left
-                ball_velocity.x *= -1
-
-                offset = (ball_rect.centery - enemy.centery) / (enemy.height / 2)
-                ball_velocity.y = BALL_SPEED * offset
-
-                if abs(ball_velocity.y) < BALL_SPEED:
-                    ball_velocity.y = BALL_SPEED * (1 if ball_velocity.y > 0 else -1)
-            
-            # Increment score when ball hits a wall
-            if not ball_out_of_bounds:
-                if ball_rect.right >= SCREEN_WIDTH:
-                    score_sound.play()
-                    player_score += 1
-                    ball_out_of_bounds = True
-                elif ball_rect.left <= 0:
-                    enemy_score_sound.play()
-                    enemy_score += 1
-                    ball_out_of_bounds = True
-            
-            # Reset ball when it hits a wall
-            if ball_out_of_bounds and not reset_ball:
-                reset_timer, starting_velocity = reset_ball_state(ball_rect, ball_surface, ball_velocity, ball_colors, player, enemy)
-                reset_ball = True
-            
-            # Wait 1 second before 'serving' ball
-            if reset_ball:
-                if pygame.time.get_ticks() - reset_timer >= 1000:
-                    ball_velocity.xy = starting_velocity
-                    reset_ball = False
-                    ball_out_of_bounds = False
-            
-            # Win/Lose condition
-            if enemy_score >= 10:
-                bounce_sound.stop()
-                score_sound.stop()
-                enemy_score_sound.stop()
-                await game_lost()
-            elif player_score >= 10:
-                bounce_sound.stop()
-                score_sound.stop()
-                enemy_score_sound.stop()
-                await game_won()
-            
-            # Enemy 'AI' logic
-            if ball_rect.centery > enemy.centery:
-                enemy.centery += ENEMY_SPEED
-            elif ball_rect.centery < enemy.centery:
-                enemy.centery -= ENEMY_SPEED
-
-            # Player movement logic
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_w] or keys[pygame.K_UP]:
-                player.move_ip(0, -PLAYER_SPEED)
-            elif keys[pygame.K_s] or keys[pygame.K_DOWN]:
-                player.move_ip(0, PLAYER_SPEED)
-            
-            # Keep player in bounds of screen
-            if player.top < 0:
-                player.top = 0
-            if player.bottom > SCREEN_HEIGHT:
-                player.bottom = SCREEN_HEIGHT
+            display_message("segoeui", f"player score: {player_score}", 26, centered=False, position=(SCREEN_WIDTH // 10, 5))
+            display_message("segoeui", f"enemy score: {enemy_score}", 26, centered=False, position=(SCREEN_WIDTH - 250, 5))
 
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False # Exit game
-            
+                    if event.type == pygame.QUIT:
+                        running = False # Exit game
+                    elif event.type == pygame.KEYDOWN and (event.key == pygame.K_p or event.key == pygame.K_ESCAPE):
+                        paused = not paused
+
+            if not paused:
+                ball_rect.x += ball_velocity.x
+                ball_rect.y += ball_velocity.y
+
+                if ball_rect.top <= 0 or ball_rect.bottom >= SCREEN_HEIGHT:
+                    bounce_sound.play()
+                    ball_velocity.y *= -1  # Reverse vertical direction
+                
+                if player.colliderect(ball_rect):
+                    bounce_sound.play()
+                    ball_surface.fill(ball_colors[1])
+                    ball_rect.left = player.right # Prevent ball sticking
+                    ball_velocity.x *= -1 # Reverse horizontal direction
+
+                    offset = (ball_rect.centery - player.centery) / (player.height / 2)
+                    ball_velocity.y = BALL_SPEED * offset
+
+                    if abs(ball_velocity.y) < BALL_SPEED:
+                        ball_velocity.y = BALL_SPEED * (1 if ball_velocity.y > 0 else -1) # Ensure ball stays at least at starting speed
+
+                elif enemy.colliderect(ball_rect):
+                    bounce_sound.play()
+                    ball_surface.fill(ball_colors[2])
+                    ball_rect.right = enemy.left
+                    ball_velocity.x *= -1
+
+                    offset = (ball_rect.centery - enemy.centery) / (enemy.height / 2)
+                    ball_velocity.y = BALL_SPEED * offset
+
+                    if abs(ball_velocity.y) < BALL_SPEED:
+                        ball_velocity.y = BALL_SPEED * (1 if ball_velocity.y > 0 else -1)
+                
+                # Increment score when ball hits a wall
+                if not ball_out_of_bounds:
+                    if ball_rect.right >= SCREEN_WIDTH:
+                        score_sound.play()
+                        player_score += 1
+                        ball_out_of_bounds = True
+                    elif ball_rect.left <= 0:
+                        enemy_score_sound.play()
+                        enemy_score += 1
+                        ball_out_of_bounds = True
+                
+                # Reset ball when it hits a wall
+                if ball_out_of_bounds and not reset_ball:
+                    reset_timer, starting_velocity = reset_ball_state(ball_rect, ball_surface, ball_velocity, ball_colors, player, enemy)
+                    reset_ball = True
+                
+                # Wait 1 second before 'serving' ball
+                if reset_ball:
+                    if pygame.time.get_ticks() - reset_timer >= 1000:
+                        ball_velocity.xy = starting_velocity
+                        reset_ball = False
+                        ball_out_of_bounds = False
+                
+                # Win/Lose condition
+                if enemy_score >= 10:
+                    bounce_sound.stop()
+                    score_sound.stop()
+                    enemy_score_sound.stop()
+                    await game_lost()
+                elif player_score >= 10:
+                    bounce_sound.stop()
+                    score_sound.stop()
+                    enemy_score_sound.stop()
+                    await game_won()
+                
+                # Enemy 'AI' logic
+                if ball_rect.centery > enemy.centery:
+                    enemy.centery += ENEMY_SPEED
+                elif ball_rect.centery < enemy.centery:
+                    enemy.centery -= ENEMY_SPEED
+
+                # Player movement logic
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_w] or keys[pygame.K_UP]:
+                    player.move_ip(0, -PLAYER_SPEED)
+                elif keys[pygame.K_s] or keys[pygame.K_DOWN]:
+                    player.move_ip(0, PLAYER_SPEED)
+                
+                # Keep player in bounds of screen
+                if player.top < 0:
+                    player.top = 0
+                if player.bottom > SCREEN_HEIGHT:
+                    player.bottom = SCREEN_HEIGHT
+            else:
+                display_message("segoeui", "PAUSED", 42, bold=True)
             pygame.display.update()
             clock.tick(60)
-
         if not running:
             break
 
