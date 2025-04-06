@@ -10,7 +10,7 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 PLAYER_SPEED = 8
 ENEMY_SPEED = 4
-BALL_SPEED = 5
+BALL_SPEED = 8
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE | pygame.SCALED)
 title = pygame.display.set_caption("pong.py")
@@ -87,6 +87,15 @@ async def game_won():
                     exit()
                 await main()
 
+def reset_ball_state(ball_rect, ball_surface, ball_velocity, ball_colors, player, enemy):
+    player.x, player.y = 10, 250
+    enemy.x, enemy.y = 780, 250
+    ball_surface.fill(ball_colors[0])
+    ball_rect.topleft = ((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+    ball_velocity.xy = (0,0)
+    starting_velocity = pygame.Vector2(choice([-1, 1]) * BALL_SPEED, choice([-1, 1]) * BALL_SPEED)
+    return pygame.time.get_ticks(), starting_velocity
+
 async def main():
     while True:
         await welcome_screen()
@@ -96,6 +105,7 @@ async def main():
 
         reset_ball = False
         reset_timer = pygame.time.get_ticks()
+        ball_out_of_bounds = False
 
         ball_surface = pygame.Surface((15, 15))
         ball_rect = ball_surface.get_rect()
@@ -149,22 +159,17 @@ async def main():
                     ball_velocity.y = BALL_SPEED * (1 if ball_velocity.y > 0 else -1)
             
             # Increment score when ball hits a wall
-            if ball_rect.right == SCREEN_WIDTH:
-                player_score += 1
-            elif ball_rect.left == 0:
-                enemy_score += 1
+            if not ball_out_of_bounds:
+                if ball_rect.right >= SCREEN_WIDTH:
+                    player_score += 1
+                    ball_out_of_bounds = True
+                elif ball_rect.left <= 0:
+                    enemy_score += 1
+                    ball_out_of_bounds = True
             
             # Reset ball when it hits a wall
-            if ball_rect.right == SCREEN_WIDTH or ball_rect.left == 0 and not reset_ball:
-                player.x, player.y = 10, 250
-                enemy.x, enemy.y = 780, 250
-                ball_surface.fill(ball_colors[0])
-                ball_rect.topleft = ((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-                ball_velocity.xy = (0,0)
-
-                starting_velocity = pygame.Vector2(choice([-1, 1]) * BALL_SPEED, choice([-1, 1]) * BALL_SPEED)
-                
-                reset_timer = pygame.time.get_ticks()
+            if ball_out_of_bounds and not reset_ball:
+                reset_timer, starting_velocity = reset_ball_state(ball_rect, ball_surface, ball_velocity, ball_colors, player, enemy)
                 reset_ball = True
             
             # Wait 1 second before 'serving' ball
@@ -172,6 +177,7 @@ async def main():
                 if pygame.time.get_ticks() - reset_timer >= 1000:
                     ball_velocity.xy = starting_velocity
                     reset_ball = False
+                    ball_out_of_bounds = False
             
             # Win/Lose condition
             if enemy_score >= 10:
