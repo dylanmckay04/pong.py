@@ -251,6 +251,12 @@ async def main():
                 if player.bottom > SCREEN_HEIGHT:
                     player.bottom = SCREEN_HEIGHT
             else:
+                # Dim screen when paused
+                dim_overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+                dim_overlay.set_alpha(128)
+                dim_overlay.fill("black")
+                screen.blit(dim_overlay, (0, 0))
+
                 display_message("segoeui", "PAUSED", 42, bold=True)
             pygame.display.update()
             clock.tick(60)
