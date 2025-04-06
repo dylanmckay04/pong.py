@@ -1,7 +1,6 @@
 import pygame
 import asyncio
 from random import choice
-from time import sleep
 from sys import exit
 
 pygame.init()
@@ -10,6 +9,7 @@ pygame.init()
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 PLAYER_SPEED = 8
+ENEMY_SPEED = 4
 BALL_SPEED = 5
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE | pygame.SCALED)
@@ -38,8 +38,8 @@ def display_message(font, text, size, bold = False, color = "white", y_offset = 
 async def welcome_screen():
     while True:
         screen.fill("black")
-        display_message("segoeui", "Welcome to pong.py", 42, bold = True, y_offset = -20)
-        display_message("segoeui", "Press any key to play", 42, bold = True, y_offset = 150)
+        display_message("segoeui", "pong.py", 64, bold = True, y_offset = -20)
+        display_message("segoeui", "Press any key to play", 42, bold = False, y_offset = 150)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -55,8 +55,8 @@ async def game_lost():
     while True:
         screen.fill("black")
         display_message("segoeui", "You lost!", 42, bold = True, y_offset = -20)
-        display_message("segoeui", "Press any key to play again", 42, bold = True, y_offset = 150)
-        display_message("segoeui", "Press 'Esc' to exit", 21, bold = True, y_offset = 225)
+        display_message("segoeui", "Press any key to play again", 32, bold = False, y_offset = 150)
+        display_message("segoeui", "Press 'Esc' to exit", 21, bold = False, y_offset = 225)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -73,8 +73,8 @@ async def game_won():
     while True:
         screen.fill("black")
         display_message("segoeui", "You won!", 42, bold = True, y_offset = -20)
-        display_message("segoeui", "Press any key to play again", 42, bold = True, y_offset = 150)
-        display_message("segoeui", "Press 'E0-sc' to exit", 21, bold = True, y_offset = 225)
+        display_message("segoeui", "Press any key to play again", 32, bold = False, y_offset = 150)
+        display_message("segoeui", "Press 'Esc' to exit", 21, bold = False, y_offset = 225)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -178,8 +178,12 @@ async def main():
                 await game_lost()
             elif player_score >= 10:
                 await game_won()
-
-            enemy.centery = ball_rect.y # Enemy 'follows' the ball
+            
+            # Enemy 'AI' logic
+            if ball_rect.centery > enemy.centery:
+                enemy.centery += ENEMY_SPEED
+            elif ball_rect.centery < enemy.centery:
+                enemy.centery -= ENEMY_SPEED
 
             keys = pygame.key.get_pressed()
             if keys[pygame.K_w] or keys[pygame.K_UP]:
