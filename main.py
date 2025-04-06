@@ -20,7 +20,7 @@ clock = pygame.time.Clock()
 
 player = pygame.Rect((10, 250, 10, 80))
 enemy = pygame.Rect((780, 250, 10, 80))
-
+first_time = True
 
 
 def draw_net():
@@ -53,8 +53,6 @@ async def welcome_screen():
             if event.type == pygame.QUIT:
                 pygame.quit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
                 return
 
 
@@ -116,8 +114,12 @@ def reset_ball_state(ball_rect, ball_surface, ball_velocity, ball_colors, player
     return pygame.time.get_ticks(), starting_velocity
 
 async def main():
+    global first_time
     while True:
-        await welcome_screen()
+
+        if first_time: # Only show welcome screen on first time running main()
+            await welcome_screen()
+            first_time = False
 
         pygame.mixer.pre_init(44100, 16, 2, 4096)
         pygame.mixer.init()
