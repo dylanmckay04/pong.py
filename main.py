@@ -11,6 +11,8 @@ SCREEN_HEIGHT = 600
 PLAYER_SPEED = 10
 ENEMY_SPEED = 7
 BALL_SPEED = 8
+PLAYER_STARTING_COORDS = (10, 250)
+ENEMY_STARTING_COORDS = (780, 250)
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE | pygame.SCALED)
 title = pygame.display.set_caption("pong.py")
@@ -100,8 +102,8 @@ async def game_won():
                 await main()
 
 def reset_ball_state(ball_rect, ball_surface, ball_velocity, ball_colors, player, enemy):
-    player.x, player.y = 10, 250
-    enemy.x, enemy.y = 780, 250
+    player.x, player.y = PLAYER_STARTING_COORDS
+    enemy.x, enemy.y = ENEMY_STARTING_COORDS
     ball_surface.fill(ball_colors[0])
     ball_rect.topleft = ((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
     ball_velocity.xy = (0,0)
