@@ -8,8 +8,8 @@ pygame.init()
 # Constants
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-PLAYER_SPEED = 8
-ENEMY_SPEED = 4
+PLAYER_SPEED = 10
+ENEMY_SPEED = 7
 BALL_SPEED = 8
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE | pygame.SCALED)
@@ -52,6 +52,12 @@ async def welcome_screen():
 
 
 async def game_lost():
+    pygame.mixer.pre_init(44100, 16, 2, 4096)
+    pygame.mixer.init()
+    loss_sound = pygame.mixer.Sound("audio/loss.ogg")
+    loss_sound.set_volume(0.1)
+    loss_sound.play()
+    
     while True:
         screen.fill("black")
         display_message("segoeui", "You lost!", 42, bold = True, y_offset = -20)
@@ -70,6 +76,12 @@ async def game_lost():
                 await main()
 
 async def game_won():
+    pygame.mixer.pre_init(44100, 16, 2, 4096)
+    pygame.mixer.init()
+    win_sound = pygame.mixer.Sound("audio/victory.ogg")
+    win_sound.set_volume(0.1)
+    win_sound.play()
+
     while True:
         screen.fill("black")
         display_message("segoeui", "You won!", 42, bold = True, y_offset = -20)
@@ -99,6 +111,16 @@ def reset_ball_state(ball_rect, ball_surface, ball_velocity, ball_colors, player
 async def main():
     while True:
         await welcome_screen()
+
+        pygame.mixer.pre_init(44100, 16, 2, 4096)
+        pygame.mixer.init()
+
+        bounce_sound = pygame.mixer.Sound("audio/ball_bounce.ogg")
+        bounce_sound.set_volume(0.1)
+        score_sound = pygame.mixer.Sound("audio/score_sound.ogg")
+        score_sound.set_volume(0.025)
+        enemy_score_sound = pygame.mixer.Sound("audio/enemy_score.ogg")
+        enemy_score_sound.set_volume(0.075)
 
         player_score = 0
         enemy_score = 0
@@ -134,9 +156,11 @@ async def main():
             ball_rect.y += ball_velocity.y
 
             if ball_rect.top <= 0 or ball_rect.bottom >= SCREEN_HEIGHT:
+                bounce_sound.play()
                 ball_velocity.y *= -1  # Reverse vertical direction
             
             if player.colliderect(ball_rect):
+                bounce_sound.play()
                 ball_surface.fill(ball_colors[1])
                 ball_rect.left = player.right # Prevent ball sticking
                 ball_velocity.x *= -1 # Reverse horizontal direction
@@ -148,6 +172,7 @@ async def main():
                     ball_velocity.y = BALL_SPEED * (1 if ball_velocity.y > 0 else -1) # Ensure ball stays at least at starting speed
 
             elif enemy.colliderect(ball_rect):
+                bounce_sound.play()
                 ball_surface.fill(ball_colors[2])
                 ball_rect.right = enemy.left
                 ball_velocity.x *= -1
@@ -161,9 +186,11 @@ async def main():
             # Increment score when ball hits a wall
             if not ball_out_of_bounds:
                 if ball_rect.right >= SCREEN_WIDTH:
+                    score_sound.play()
                     player_score += 1
                     ball_out_of_bounds = True
                 elif ball_rect.left <= 0:
+                    enemy_score_sound.play()
                     enemy_score += 1
                     ball_out_of_bounds = True
             
@@ -181,8 +208,14 @@ async def main():
             
             # Win/Lose condition
             if enemy_score >= 10:
+                bounce_sound.stop()
+                score_sound.stop()
+                enemy_score_sound.stop()
                 await game_lost()
             elif player_score >= 10:
+                bounce_sound.stop()
+                score_sound.stop()
+                enemy_score_sound.stop()
                 await game_won()
             
             # Enemy 'AI' logic
@@ -191,6 +224,7 @@ async def main():
             elif ball_rect.centery < enemy.centery:
                 enemy.centery -= ENEMY_SPEED
 
+            # Player movement logic
             keys = pygame.key.get_pressed()
             if keys[pygame.K_w] or keys[pygame.K_UP]:
                 player.move_ip(0, -PLAYER_SPEED)
