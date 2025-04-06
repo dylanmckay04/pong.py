@@ -40,7 +40,6 @@ def display_message(font, text, size, bold = False, color = "white", y_offset = 
     screen.blit(message, message_rect)
 
 async def welcome_screen():
-    while True:
         screen.fill("black")
         display_message("segoeui", "pong.py", 64, bold = True, y_offset = -20)
         display_message("segoeui", "press any key to play", 42, bold = False, y_offset = 100)
@@ -50,14 +49,15 @@ async def welcome_screen():
         display_message("segoeui", "10 points to win", 32, bold=False, y_offset=265)
         
         pygame.display.update()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-            elif event.type == pygame.KEYDOWN:
-                return
-        await asyncio.sleep(0)
+        
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+                elif event.type == pygame.KEYDOWN:
+                    return
+            await asyncio.sleep(0)
 
 
 async def game_lost():
