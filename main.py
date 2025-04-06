@@ -42,9 +42,11 @@ async def welcome_screen():
         screen.fill("black")
         display_message("segoeui", "pong.py", 64, bold = True, y_offset = -20)
         display_message("segoeui", "press any key to play", 42, bold = False, y_offset = 100)
-        display_message("segoeui", "'w' or '↑': move up", 20, bold=False, y_offset=220)
-        display_message("segoeui", "'s' or '↓': move down", 20, bold=False, y_offset=245)
-        display_message("segoeui", "'esc' or 'p' to pause", 20, bold=False, y_offset=270)
+        display_message("segoeui", "'w' or '↑': move up", 20, bold=False, y_offset=165)
+        display_message("segoeui", "'s' or '↓': move down", 20, bold=False, y_offset=190)
+        display_message("segoeui", "'esc' or 'p' to pause", 20, bold=False, y_offset=215)
+        display_message("segoeui", "10 points to win", 32, bold=False, y_offset=265)
+        
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -66,8 +68,8 @@ async def game_lost():
     while True:
         screen.fill("black")
         display_message("segoeui", "you lost!", 42, bold = True, y_offset = -20)
-        display_message("segoeui", "press any key to play again", 32, bold = False, y_offset = 150)
-        display_message("segoeui", "press 'esc' to exit", 21, bold = False, y_offset = 225)
+        display_message("segoeui", "press any key to play again", 32, bold = False, y_offset = 100)
+        display_message("segoeui", "press 'esc' to exit", 21, bold = False, y_offset = 220)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -90,8 +92,8 @@ async def game_won():
     while True:
         screen.fill("black")
         display_message("segoeui", "you won!", 42, bold = True, y_offset = -20)
-        display_message("segoeui", "press any key to play again", 32, bold = False, y_offset = 150)
-        display_message("segoeui", "press 'Esc' to exit", 21, bold = False, y_offset = 225)
+        display_message("segoeui", "press any key to play again", 32, bold = False, y_offset = 100)
+        display_message("segoeui", "press 'Esc' to exit", 21, bold = False, y_offset = 220)
         pygame.display.update()
 
         for event in pygame.event.get():
